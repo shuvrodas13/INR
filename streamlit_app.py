@@ -1,9 +1,5 @@
-import streamlit as st
 
-st.title("🎈 My new app")
-st.write(
-    "Let's start building! For help and inspiration, head over to [docs.streamlit.io](https://docs.streamlit.io/)."
-)
+
 import streamlit as st
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib import colors
@@ -36,7 +32,6 @@ button[kind="primary"] {
 # ---------------- TITLE ----------------
 st.title("🧪 INR Calculator")
 
-st.markdown("Enter patient details to generate a professional report.")
 
 # ---------------- INPUT ----------------
 patient_id = st.text_input("Patient ID (Minimum 6 digits)")
