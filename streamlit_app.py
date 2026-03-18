@@ -9,7 +9,7 @@ from datetime import datetime
 st.set_page_config(page_title="INR Calculator", layout="centered")
 
 st.title("🧪 INR Calculator")
-st.markdown("Enter patient details to generate a professional report.")
+st.markdown("Enter patient details to generate a  report.")
 
 # ---------------- INPUT ----------------
 patient_id = st.text_input("Patient ID (Minimum 6 digits)")
