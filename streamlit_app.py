@@ -1,8 +1,12 @@
 import streamlit as st
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.enums import TA_CENTER
+from io import BytesIO
 from datetime import datetime
 import base64
 
-# ---------------- PAGE ----------------
+# ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="INR Calculator", layout="centered")
 
 st.title("🧪 INR Calculator")
@@ -21,6 +25,40 @@ valid_id = patient_id.isdigit() and len(patient_id) >= 6
 if patient_id and not valid_id:
     st.error("Patient ID must be at least 6 digits and numeric.")
 
+# ---------------- PDF GENERATOR ----------------
+def generate_pdf(pid, patient, control, ratio, index, inr):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer)
+
+    title_style = ParagraphStyle(
+        name='Title', fontSize=22, leading=26, alignment=TA_CENTER
+    )
+    normal_style = ParagraphStyle(
+        name='Normal', fontSize=16, leading=22
+    )
+
+    elements = []
+
+    elements.append(Paragraph("INR Laboratory Report", title_style))
+    elements.append(Spacer(1, 20))
+
+    now = datetime.now().strftime("%d-%m-%Y %H:%M")
+    elements.append(Paragraph(f"Date: {now}", normal_style))
+    elements.append(Spacer(1, 15))
+
+    elements.append(Paragraph(f"Patient ID: {pid}", normal_style))
+    elements.append(Spacer(1, 15))
+
+    elements.append(Paragraph(f"Patient Value: {patient}", normal_style))
+    elements.append(Paragraph(f"Control Value: {control}", normal_style))
+    elements.append(Paragraph(f"Ratio: {ratio:.2f}", normal_style))
+    elements.append(Paragraph(f"Index: {index:.2f}", normal_style))
+    elements.append(Paragraph(f"INR: {inr:.2f}", normal_style))
+
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer
+
 # ---------------- PRINT HTML PAGE ----------------
 def open_print_page(pid, patient, control, ratio, index, inr):
     now = datetime.now().strftime("%d-%m-%Y %H:%M")
@@ -28,80 +66,71 @@ def open_print_page(pid, patient, control, ratio, index, inr):
     html = f"""
     <html>
     <head>
-        <title>INR Laboratory Report</title>
+        <title>INR Report</title>
         <style>
             body {{
-                font-family: Arial, sans-serif;
+                font-family: Arial;
                 margin: 40px;
-                color: #000;
+                color: black;
             }}
             .container {{
                 max-width: 700px;
                 margin: auto;
-                border: 1px solid #000;
+                border: 1px solid black;
                 padding: 20px;
             }}
             h1 {{
                 text-align: center;
                 font-size: 26px;
-                margin-bottom: 20px;
             }}
             .row {{
                 font-size: 18px;
                 margin: 10px 0;
             }}
-            .footer {{
-                margin-top: 30px;
-                text-align: center;
-                font-size: 14px;
+            button {{
+                margin-top: 20px;
+                width: 100%;
+                padding: 10px;
+                font-size: 16px;
+                cursor: pointer;
             }}
             @media print {{
                 button {{
                     display: none;
                 }}
             }}
-            button {{
-                margin-top: 20px;
-                padding: 10px;
-                width: 100%;
-                font-size: 16px;
-                cursor: pointer;
-            }}
         </style>
     </head>
 
     <body>
+        <div class="container">
 
-    <div class="container">
+            <h1>INR Laboratory Report</h1>
 
-        <h1>INR Laboratory Report</h1>
+            <div class="row"><b>Date:</b> {now}</div>
+            <div class="row"><b>Patient ID:</b> {pid}</div>
+            <div class="row"><b>Patient Value:</b> {patient}</div>
+            <div class="row"><b>Control Value:</b> {control}</div>
+            <div class="row"><b>Ratio:</b> {ratio:.2f}</div>
+            <div class="row"><b>Index:</b> {index:.2f}</div>
+            <div class="row"><b>INR:</b> {inr:.2f}</div>
 
-        <div class="row"><b>Date:</b> {now}</div>
-        <div class="row"><b>Patient ID:</b> {pid}</div>
-        <div class="row"><b>Patient Value:</b> {patient}</div>
-        <div class="row"><b>Control Value:</b> {control}</div>
-        <div class="row"><b>Ratio:</b> {ratio:.2f}</div>
-        <div class="row"><b>Index:</b> {index:.2f}</div>
-        <div class="row"><b>INR:</b> {inr:.2f}</div>
+            <button onclick="window.print()">🖨️ Print / Save as PDF</button>
 
-        <button onclick="window.print()">🖨️ Print / Save as PDF</button>
+            <p style="text-align:center;margin-top:20px;">
+                Developed by Bipropod Das Shubro
+            </p>
 
-        <div class="footer">
-            Developed by Bipropod Das Shubro
         </div>
-
-    </div>
-
     </body>
     </html>
     """
 
     b64 = base64.b64encode(html.encode()).decode()
-
     url = f"data:text/html;base64,{b64}"
 
     st.markdown(
-        f'<a href="{url}" target="_blank">📄 Open Print Report</a>',
+        f'<a href="{url}" target="_blank">📄 Open Print Report (HTML)</a>',
         unsafe_allow_html=True
     )
 
@@ -119,7 +148,18 @@ if valid_id and patient_value > 0 and control_value > 0:
     col2.metric("Index", f"{index:.2f}")
     col3.metric("INR", f"{inr:.2f}")
 
-    # PRINT PAGE BUTTON
+    pdf = generate_pdf(patient_id, patient_value, control_value, ratio, index, inr)
+
+    # ---------------- DOWNLOAD PDF ----------------
+    st.download_button(
+        "📄 Download PDF Report",
+        data=pdf,
+        file_name=f"INR_Report_{patient_id}.pdf",
+        mime="application/pdf",
+        type="primary"
+    )
+
+    # ---------------- PRINT HTML ----------------
     open_print_page(patient_id, patient_value, control_value, ratio, index, inr)
 
 elif patient_value == 0 or control_value == 0:
