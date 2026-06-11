@@ -90,6 +90,12 @@ if valid_id and patient_value > 0 and control_value > 0:
         🖨️ Print Report
         </button>
     """, unsafe_allow_html=True)
+    st.markdown("""
+        <button onclick="window.print()" 
+        style="width:100%;padding:10px;font-size:16px;background:#4CAF50;color:white;border:none;border-radius:5px;">
+        🖨️ Print Report
+        </button>
+    """, unsafe_allow_html=True)
 
 elif patient_value == 0 or control_value == 0:
     st.info("Enter values to calculate.")
