@@ -105,9 +105,9 @@ if valid_id and patient_value > 0 and control_value > 0:
         🖨️ Print Report
         </button>
     """, unsafe_allow_html=True)
-   if st.button("📄 Open PDF in New Tab for Print"):
-    pdf = generate_pdf(patient_id, patient_value, control_value, ratio, index, inr)
-    open_pdf_new_tab(pdf)
+        if st.button("📄 Open PDF in New Tab for Print"):
+        pdf = generate_pdf(patient_id, patient_value, control_value, ratio, index, inr)
+        open_pdf_new_tab(pdf)
 
 elif patient_value == 0 or control_value == 0:
     st.info("Enter values to calculate.")
