@@ -6,25 +6,11 @@ from io import BytesIO
 from datetime import datetime
 import base64
 
-def open_pdf_new_tab(pdf_buffer):
-    base64_pdf = base64.b64encode(pdf_buffer.read()).decode('utf-8')
-
-    pdf_display = f"""
-    <iframe 
-        src="data:application/pdf;base64,{base64_pdf}" 
-        width="100%" 
-        height="800px"
-        style="border:none;">
-    </iframe>
-    """
-
-    st.markdown(pdf_display, unsafe_allow_html=True)
-
-# ---------------- UI STYLE ----------------
+# ---------------- PAGE CONFIG ----------------
 st.set_page_config(page_title="INR Calculator", layout="centered")
 
 st.title("🧪 INR Calculator")
-st.markdown("Enter patient details to generate a  report.")
+st.markdown("Enter patient details to generate a report.")
 
 # ---------------- INPUT ----------------
 patient_id = st.text_input("Patient ID (Minimum 6 digits)")
@@ -38,26 +24,25 @@ def generate_pdf(pid, patient, control, ratio, index, inr):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer)
 
-    # Custom styles with larger font
-    title_style = ParagraphStyle(name='Title', fontSize=22, leading=26, alignment=TA_CENTER)
-    normal_style = ParagraphStyle(name='Normal', fontSize=16, leading=22)
+    title_style = ParagraphStyle(
+        name='Title', fontSize=22, leading=26, alignment=TA_CENTER
+    )
+    normal_style = ParagraphStyle(
+        name='Normal', fontSize=16, leading=22
+    )
 
     elements = []
 
-    # Title
     elements.append(Paragraph("INR Laboratory Report", title_style))
     elements.append(Spacer(1, 20))
 
-    # Date
     now = datetime.now().strftime("%d-%m-%Y %H:%M")
     elements.append(Paragraph(f"Date: {now}", normal_style))
     elements.append(Spacer(1, 15))
 
-    # Patient Info
     elements.append(Paragraph(f"Patient ID: {pid}", normal_style))
     elements.append(Spacer(1, 15))
 
-    # Results
     elements.append(Paragraph(f"Patient Value: {patient}", normal_style))
     elements.append(Paragraph(f"Control Value: {control}", normal_style))
     elements.append(Paragraph(f"Ratio: {ratio:.2f}", normal_style))
@@ -67,6 +52,21 @@ def generate_pdf(pid, patient, control, ratio, index, inr):
     doc.build(elements)
     buffer.seek(0)
     return buffer
+
+# ---------------- OPEN PDF IN NEW TAB ----------------
+def open_pdf_new_tab(pdf_buffer):
+    base64_pdf = base64.b64encode(pdf_buffer.read()).decode("utf-8")
+
+    pdf_display = f"""
+    <iframe 
+        src="data:application/pdf;base64,{base64_pdf}" 
+        width="100%" 
+        height="800px"
+        style="border:none;">
+    </iframe>
+    """
+
+    st.markdown(pdf_display, unsafe_allow_html=True)
 
 # ---------------- VALIDATION ----------------
 valid_id = patient_id.isdigit() and len(patient_id) >= 6
@@ -82,6 +82,7 @@ if valid_id and patient_value > 0 and control_value > 0:
     inr = ratio ** ISI
 
     st.markdown("### 📊 Results")
+
     col1, col2, col3 = st.columns(3)
     col1.metric("Ratio", f"{ratio:.2f}")
     col2.metric("Index", f"{index:.2f}")
@@ -90,6 +91,7 @@ if valid_id and patient_value > 0 and control_value > 0:
     # Generate PDF
     pdf = generate_pdf(patient_id, patient_value, control_value, ratio, index, inr)
 
+    # Download button
     st.download_button(
         "📄 Download Report",
         data=pdf,
@@ -98,15 +100,18 @@ if valid_id and patient_value > 0 and control_value > 0:
         type="primary"
     )
 
-    # Print Button
+    # Print button
     st.markdown("""
         <br>
-        <button onclick="window.print()" style="width:100%;padding:10px;font-size:16px;">
+        <button onclick="window.print()" 
+        style="width:100%;padding:10px;font-size:16px;">
         🖨️ Print Report
         </button>
     """, unsafe_allow_html=True)
-        if st.button("📄 Open PDF in New Tab for Print"):
-            pdf = generate_pdf(patient_id, patient_value, control_value, ratio, index, inr)
+
+    # Open PDF in same page (Streamlit limitation workaround)
+    if st.button("📄 Open PDF in Viewer"):
+        pdf = generate_pdf(patient_id, patient_value, control_value, ratio, index, inr)
         open_pdf_new_tab(pdf)
 
 elif patient_value == 0 or control_value == 0:
