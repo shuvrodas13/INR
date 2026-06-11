@@ -4,6 +4,21 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 from io import BytesIO
 from datetime import datetime
+import base64
+
+def open_pdf_new_tab(pdf_buffer):
+    base64_pdf = base64.b64encode(pdf_buffer.read()).decode('utf-8')
+
+    pdf_display = f"""
+    <iframe 
+        src="data:application/pdf;base64,{base64_pdf}" 
+        width="100%" 
+        height="800px"
+        style="border:none;">
+    </iframe>
+    """
+
+    st.markdown(pdf_display, unsafe_allow_html=True)
 
 # ---------------- UI STYLE ----------------
 st.set_page_config(page_title="INR Calculator", layout="centered")
@@ -90,12 +105,9 @@ if valid_id and patient_value > 0 and control_value > 0:
         🖨️ Print Report
         </button>
     """, unsafe_allow_html=True)
-    st.markdown("""
-        <button onclick="window.print()" 
-        style="width:100%;padding:10px;font-size:16px;background:#4CAF50;color:white;border:none;border-radius:5px;">
-        🖨️ Print Report
-        </button>
-    """, unsafe_allow_html=True)
+   if st.button("📄 Open PDF in New Tab for Print"):
+    pdf = generate_pdf(patient_id, patient_value, control_value, ratio, index, inr)
+    open_pdf_new_tab(pdf)
 
 elif patient_value == 0 or control_value == 0:
     st.info("Enter values to calculate.")
