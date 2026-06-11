@@ -45,9 +45,9 @@ def generate_pdf(pid, patient, control, ratio, index, inr):
     # Results
     elements.append(Paragraph(f"Patient Value: {patient}", normal_style))
     elements.append(Paragraph(f"Control Value: {control}", normal_style))
-    elements.append(Paragraph(f"Ratio: {ratio:.3f}", normal_style))
+    elements.append(Paragraph(f"Ratio: {ratio:.2f}", normal_style))
     elements.append(Paragraph(f"Index: {index:.2f}", normal_style))
-    elements.append(Paragraph(f"INR: {inr:.3f}", normal_style))
+    elements.append(Paragraph(f"INR: {inr:.2f}", normal_style))
 
     doc.build(elements)
     buffer.seek(0)
@@ -68,9 +68,9 @@ if valid_id and patient_value > 0 and control_value > 0:
 
     st.markdown("### 📊 Results")
     col1, col2, col3 = st.columns(3)
-    col1.metric("Ratio", f"{ratio:.3f}")
+    col1.metric("Ratio", f"{ratio:.2f}")
     col2.metric("Index", f"{index:.2f}")
-    col3.metric("INR", f"{inr:.3f}")
+    col3.metric("INR", f"{inr:.2f}")
 
     # Generate PDF
     pdf = generate_pdf(patient_id, patient_value, control_value, ratio, index, inr)
